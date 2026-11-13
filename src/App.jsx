@@ -16,6 +16,7 @@ import Music from './sections/Music'
 import Resonance from './sections/Resonance'
 import Gallery from './sections/Gallery'
 import Contact from './sections/Contact'
+import ChatAssistant from './components/ChatAssistant'
 
 function BgGlow() {
   const { scrollYProgress } = useScroll()
@@ -72,6 +73,7 @@ export default function App() {
       </main>
 
       <Contact />
+      <ChatAssistant />
     </MotionConfig>
   )
 }

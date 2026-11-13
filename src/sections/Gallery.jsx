@@ -56,7 +56,7 @@ export default function Gallery() {
   return (
     <section className="gallery" id="gallery" aria-labelledby="gallery-h">
       <div className="wrap">
-        <h2 id="gallery-h" className="visually-hidden">On Stage — Gallery</h2>
+        <h2 id="gallery-h" className="visually-hidden">On Stage, Gallery</h2>
         <div className="gallery-head">
           <FadeUp>
             <span className="eyebrow">On Stage</span>

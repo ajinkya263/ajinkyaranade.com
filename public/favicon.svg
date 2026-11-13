@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Ajinkya Ranade">
+  <defs>
+    <linearGradient id="brass" x1="110" y1="70" x2="410" y2="450" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#eed08a"/>
+      <stop offset=".5" stop-color="#c9a24b"/>
+      <stop offset="1" stop-color="#9c7527"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="118" fill="#0b0b0d"/>
+  <rect x="21" y="21" width="470" height="470" rx="99" fill="none" stroke="url(#brass)" stroke-width="10" opacity="0.32"/>
+  <!-- A monogram -->
+  <path d="M256 104 L372 408 L318 408 L293 338 L219 338 L194 408 L140 408 Z M235 288 L277 288 L256 228 Z"
+        fill="url(#brass)"/>
+</svg>

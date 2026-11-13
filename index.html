@@ -21,11 +21,12 @@
     <meta property="og:title" content="Ajinkya Ranade | Tabla Artist &amp; Percussionist" />
     <meta
       property="og:description"
-      content="Versatile musician. 13+ years of Tabla. Founder of Resonance Studios — Tabla classes in Santa Clara &amp; the East Bay."
+      content="Versatile musician. 13+ years of Tabla. Founder of Resonance Studios, Tabla classes in Santa Clara &amp; the East Bay."
     />
     <meta property="og:image" content="https://ajinkyaranade.com/img/hero.jpg" />
-    <meta property="og:image:width" content="1200" />
-    <meta property="og:image:height" content="750" />
+    <meta property="og:image:width" content="1072" />
+    <meta property="og:image:height" content="1467" />
+    <meta property="og:image:alt" content="Ajinkya Ranade performing Tabla under a spotlight" />
     <meta property="og:locale" content="en_US" />
 
     <!-- Twitter -->
@@ -36,34 +37,63 @@
       content="Versatile musician. 13+ years of Tabla. Founder of Resonance Studios."
     />
     <meta name="twitter:image" content="https://ajinkyaranade.com/img/hero.jpg" />
+    <meta name="twitter:image:alt" content="Ajinkya Ranade performing Tabla under a spotlight" />
 
     <!-- Google Search Console verification (paste your code, then uncomment):
     <meta name="google-site-verification" content="PASTE_YOUR_GSC_CODE_HERE" />
     -->
 
-    <link rel="icon" type="image/png" href="/img/rs-logo.png" />
-    <link rel="apple-touch-icon" href="/img/rs-logo.png" />
+    <!-- Favicons / app icons -->
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="icon" href="/favicon-32.png" sizes="32x32" type="image/png" />
+    <link rel="icon" href="/icon-192.png" sizes="192x192" type="image/png" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/site.webmanifest" />
 
-    <!-- Structured data: tells Google this page is the musician Ajinkya Ranade -->
+    <!-- Structured data: identifies the musician Ajinkya Ranade and his
+         Tabla school, Resonance Studios, to Google (helps the knowledge panel
+         and "tabla classes near me" style queries). -->
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
-        "@type": "Person",
-        "name": "Ajinkya Ranade",
-        "alternateName": "Ajinkya Ranade Tabla",
-        "url": "https://ajinkyaranade.com/",
-        "image": "https://ajinkyaranade.com/img/hero.jpg",
-        "jobTitle": "Tabla Artist & Percussionist",
-        "description": "Ajinkya Ranade is a versatile Tabla artist, percussionist and vocalist based in the Bay Area, and the founder of Resonance Studios.",
-        "address": {
-          "@type": "PostalAddress",
-          "addressLocality": "Santa Clara",
-          "addressRegion": "CA",
-          "addressCountry": "US"
-        },
-        "worksFor": { "@type": "Organization", "name": "Resonance Studios" },
-        "knowsAbout": ["Tabla", "Hindustani Classical Music", "Percussion", "Indian Classical Music"],
-        "sameAs": ["https://www.instagram.com/ajinkyaranademusic/"]
+        "@graph": [
+          {
+            "@type": "Person",
+            "@id": "https://ajinkyaranade.com/#ajinkya",
+            "name": "Ajinkya Ranade",
+            "alternateName": ["Ajinkya Ranade Tabla", "Ajinkya Ranade Tabla Artist"],
+            "url": "https://ajinkyaranade.com/",
+            "mainEntityOfPage": "https://ajinkyaranade.com/",
+            "image": "https://ajinkyaranade.com/img/hero.jpg",
+            "jobTitle": "Tabla Artist & Percussionist",
+            "description": "Ajinkya Ranade is a versatile Tabla artist, percussionist and vocalist based in the Bay Area, and the founder of Resonance Studios. 13+ years of Tabla under Ustad Surinder Mann, Pandit Yogesh Samsi and Shri Yashwant Vaishnav.",
+            "address": {
+              "@type": "PostalAddress",
+              "addressLocality": "Santa Clara",
+              "addressRegion": "CA",
+              "addressCountry": "US"
+            },
+            "worksFor": { "@id": "https://ajinkyaranade.com/#resonance" },
+            "knowsAbout": ["Tabla", "Hindustani Classical Music", "Percussion", "Indian Classical Music", "Tabla accompaniment", "Tabla solo"]
+          },
+          {
+            "@type": ["EducationalOrganization", "MusicGroup"],
+            "@id": "https://ajinkyaranade.com/#resonance",
+            "name": "Resonance Studios",
+            "url": "https://ajinkyaranade.com/#resonance",
+            "description": "Resonance Studios offers Tabla classes, workshops and concerts in the San Francisco Bay Area, led by Ajinkya Ranade.",
+            "founder": { "@id": "https://ajinkyaranade.com/#ajinkya" },
+            "logo": "https://ajinkyaranade.com/img/rs-logo.png",
+            "address": {
+              "@type": "PostalAddress",
+              "addressLocality": "Santa Clara",
+              "addressRegion": "CA",
+              "addressCountry": "US"
+            },
+            "areaServed": ["Santa Clara, CA", "East Bay, CA", "San Francisco Bay Area"],
+            "knowsAbout": ["Tabla", "Tabla lessons", "Indian Classical Music"]
+          }
+        ]
       }
     </script>
 

@@ -1,5 +1,6 @@
 import { FadeUp, Words } from '../components/Reveal'
-import { Instagram, YouTube, MusicNote, Briefcase, WhatsApp, Pin } from '../components/icons'
+import Magnetic from '../components/Magnetic'
+import { YouTube, MusicNote, Briefcase, WhatsApp, Pin, ArrowUpRight } from '../components/icons'
 import { contactCopy } from '../data/content'
 import { config } from '../data/config'
 
@@ -19,6 +20,19 @@ export default function Contact() {
           <h2>
             <Words text={contactCopy.title} />
           </h2>
+          <FadeUp delay={0.1} className="res-portal">
+            <span className="res-portal-note">Already studying with Ajinkya?</span>
+            <Magnetic strength={0.3}>
+              <a
+                className="res-portal-link"
+                href={config.studentPortal}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Enter the Student Portal <ArrowUpRight />
+              </a>
+            </Magnetic>
+          </FadeUp>
         </div>
 
         <div className="contact-grid">
@@ -62,12 +76,6 @@ export default function Contact() {
             © {year} {name}. All rights reserved.
           </span>
           <div className="socials">
-            {isReal(socials.instagram) && (
-              <a className="social-link" href={socials.instagram} target="_blank" rel="noopener noreferrer">
-                <Instagram style={{ width: 16, height: 16 }} />
-                {socials.instagramHandle || 'Instagram'}
-              </a>
-            )}
             {isReal(socials.youtube) && (
               <a className="social-link" href={socials.youtube} target="_blank" rel="noopener noreferrer">
                 <YouTube style={{ width: 16, height: 16 }} />

@@ -1,8 +1,7 @@
 import { FadeUp, Words } from '../components/Reveal'
 import Magnetic from '../components/Magnetic'
 import SoundWave from '../components/SoundWave'
-import InstagramGrid from '../components/InstagramEmbed'
-import { Play, Spotify, Apple, Instagram } from '../components/icons'
+import { Play, Spotify, Apple } from '../components/icons'
 import { music } from '../data/content'
 import { config } from '../data/config'
 
@@ -100,16 +99,6 @@ export default function Music() {
           </div>
         )}
 
-        {config.instagram?.length > 0 && (
-          <FadeUp className="ig-block">
-            <div className="ig-head">
-              <Instagram style={{ width: 16, height: 16 }} />
-              <span>From Instagram</span>
-            </div>
-            <InstagramGrid links={config.instagram} />
-          </FadeUp>
-        )}
-
         {isReal(streaming.spotifyEmbedId) && (
           <FadeUp className="spotify-embed">
             <iframe
@@ -130,7 +119,6 @@ export default function Music() {
           )}
           <StreamButton href={streaming.spotify} icon={Spotify} label="Spotify" accent />
           <StreamButton href={streaming.appleMusic} icon={Apple} label="Apple Music" />
-          <StreamButton href={config.socials.instagram} icon={Instagram} label="Instagram" />
         </FadeUp>
       </div>
     </section>

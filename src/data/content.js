@@ -82,7 +82,7 @@ export const resonance = {
       n: '01',
       title: 'Classes',
       featured: true,
-      body: 'Structured, ongoing instruction in the Tabla — building genuine fluency in its language, technique, and repertoire, for both solo playing and accompaniment. Taught in-person in Santa Clara and the East Bay.',
+      body: 'Structured, ongoing instruction in the Tabla, building genuine fluency in its language, technique, and repertoire, for both solo playing and accompaniment. Taught in-person in Santa Clara and the East Bay.',
     },
     {
       n: '02',
@@ -93,7 +93,7 @@ export const resonance = {
       n: '03',
       title: 'Concerts',
       featured: true,
-      body: 'Curated performances with a special emphasis on programs where the Tabla is featured prominently — giving the community immersive, informed experiences of the art form.',
+      body: 'Curated performances with a special emphasis on programs where the Tabla is featured prominently, giving the community immersive, informed experiences of the art form.',
     },
   ],
 }

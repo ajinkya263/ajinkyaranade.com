@@ -7,6 +7,7 @@ export const config = {
   name: 'Ajinkya Ranade',
   role: ['Tabla Artist', '& Percussionist'],
   location: 'Santa Clara, CA',
+  studentPortal: 'https://ajinkyaranademusic.com',
 
   // -------------------------------------------------------------------------
   // VIDEOS  ·  paste YouTube video IDs (the part after  watch?v=  )

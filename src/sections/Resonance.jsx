@@ -1,7 +1,7 @@
 import { FadeUp, Words } from '../components/Reveal'
 import SoundWave from '../components/SoundWave'
 import Magnetic from '../components/Magnetic'
-import { Mail, WhatsApp, Instagram } from '../components/icons'
+import { Mail, WhatsApp } from '../components/icons'
 import { resonance } from '../data/content'
 import { config } from '../data/config'
 
@@ -61,16 +61,7 @@ export default function Resonance() {
             >
               {config.contact.phone}
             </a>{' '}
-            on WhatsApp, or DM{' '}
-            <a
-              className="ri-link"
-              href={config.socials.instagram}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              {config.socials.instagramHandle}
-            </a>{' '}
-            on Instagram.
+            on WhatsApp, or join the mailing list to hear about new class openings.
           </p>
           <div className="res-cta-actions">
             <Magnetic strength={0.3}>
@@ -81,16 +72,6 @@ export default function Resonance() {
                 rel="noopener noreferrer"
               >
                 <WhatsApp /> WhatsApp
-              </a>
-            </Magnetic>
-            <Magnetic strength={0.3}>
-              <a
-                className="btn"
-                href={config.socials.instagram}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                <Instagram /> Instagram DM
               </a>
             </Magnetic>
             <Magnetic strength={0.3}>

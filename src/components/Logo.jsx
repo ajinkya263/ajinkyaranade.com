@@ -8,7 +8,7 @@ export default function Logo() {
       <a
         className="logo"
         href="#top"
-        aria-label="Ajinkya Ranade — back to top"
+        aria-label="Ajinkya Ranade, back to top"
         onClick={(e) => {
           e.preventDefault()
           scrollToId('top')
