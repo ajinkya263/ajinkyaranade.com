@@ -65,6 +65,17 @@ Reliable tabla facts: the tabla is a pair of drums — the small wooden treble d
 
 Style: reply in 2-4 warm, clear sentences. Be accurate about the tabla and music. For specifics like exact pricing or schedules, suggest contacting Ajinkya directly. Keep the focus on the tabla, learning, and Ajinkya's music. Never invent facts about real people.`
 
+/* Theka patterns for the common taals, with every spelling variant as a tag so
+   "rupak", "roopak", "teentaal", "teental", etc. all resolve. */
+const TAAL_THEKAS = {
+  teentaal: { name: 'Teentaal', beats: 16, vibhag: '4+4+4+4', marks: 'sam on 1, claps on 5 and 13, khali on 9', theka: 'Dha Dhin Dhin Dha, Dha Dhin Dhin Dha, Dha Tin Tin Ta, Ta Dhin Dhin Dha', alt: ['teental', 'tintal', 'tintaal', 'trital', 'teen taal'] },
+  rupak: { name: 'Rupak', beats: 7, vibhag: '3+2+2', marks: 'it begins on the khali, so the first beat is an open, un-clapped sam', theka: 'Tin Tin Na, Dhin Na, Dhin Na', alt: ['roopak', 'rupak taal'] },
+  jhaptaal: { name: 'Jhaptaal', beats: 10, vibhag: '2+3+2+3', marks: 'sam on 1, khali on 6', theka: 'Dhin Na, Dhin Dhin Na, Tin Na, Dhin Dhin Na', alt: ['jhaptal', 'jhap taal', 'japtal'] },
+  ektaal: { name: 'Ektaal', beats: 12, vibhag: '2+2+2+2+2+2', marks: 'sam on 1, used widely for slow khyal', theka: 'Dhin Dhin, Dhage Tirakita, Tu Na, Kat Ta, Dhage Tirakita, Dhin Na', alt: ['ektal', 'ek taal'] },
+  keherwa: { name: 'Keherwa', beats: 8, vibhag: '4+4', marks: 'sam on 1, khali on 5; no single standard version exists', theka: 'Dha Ge Na Ti, Na Ka Dhin Na', alt: ['kaharwa', 'kehrwa', 'kaherwa'] },
+  dadra: { name: 'Dadra', beats: 6, vibhag: '3+3', marks: 'sam on 1, khali on 4', theka: 'Dha Dhin Na, Dha Tin Na', alt: ['dadraa', 'daadra'] },
+}
+
 export const knowledge = [
   /* ================================================================ CLASSES */
   {
@@ -822,6 +833,21 @@ export const knowledge = [
     answer: `Take care, and thanks for stopping by! Whenever you're ready, Ajinkya is reachable at ${PHONE} or ${MUSIC_EMAIL}.`,
     actions: [{ label: 'Message on WhatsApp', href: whatsapp }],
   },
+
+  /* Per-taal theka entries (robust name/spelling coverage). */
+  ...Object.entries(TAAL_THEKAS).map(([key, t]) => {
+    const alts = t.alt || []
+    return {
+      id: `theka-${key}`,
+      tags: [
+        t.name.toLowerCase(), key, `${t.name} theka`, `theka of ${t.name}`,
+        `${t.name} bols`, `${t.name} pattern`, `what is ${t.name}`,
+        `how do i play ${t.name}`, `bols of ${t.name}`, `${t.name} ${t.beats} beats`,
+        ...alts, ...alts.map((a) => `${a} theka`),
+      ],
+      answer: `${t.name} has ${t.beats} beats${t.vibhag ? ` (${t.vibhag})` : ''}. Its theka is: ${t.theka}.${t.marks ? ` Structure: ${t.marks}.` : ''}`,
+    }
+  }),
 
   /* Bulk tabla FAQ pack (300+ Q&A), shared with the music-school assistant. */
   ...EXTRA_FAQS.map(([t, a], i) => ({ id: `xfaq-${i}`, tags: t.split('|'), answer: a })),
