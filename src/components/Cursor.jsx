@@ -39,7 +39,7 @@ export default function Cursor() {
     const grow = () => ring.current && (ring.current.style.scale = '1.8')
     const shrink = () => ring.current && (ring.current.style.scale = '1')
 
-    // Delegated hover detection — survives late-mounted elements, no leaks.
+    // Delegated hover detection, survives late-mounted elements, no leaks.
     const onOver = (e) => {
       if (e.target.closest?.(INTERACTIVE)) grow()
     }

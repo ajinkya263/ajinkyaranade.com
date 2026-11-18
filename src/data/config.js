@@ -16,8 +16,7 @@ export const config = {
   // -------------------------------------------------------------------------
   // -------------------------------------------------------------------------
   // VIDEO FILES (best quality / on-brand)  ·  drop .mp4 files into public/video/
-  // and list them here. `poster` (optional) is a thumbnail shown before play —
-  // put it in public/img/. Set `portrait: true` for vertical (9:16) clips.
+  // and list them here. `poster` (optional) is a thumbnail shown before play,   // put it in public/img/. Set `portrait: true` for vertical (9:16) clips.
   // Leave the array empty to hide.
   // -------------------------------------------------------------------------
   localVideos: [

@@ -78,18 +78,62 @@ export default function ChatAssistant() {
   const [voiceErr, setVoiceErr] = useState('')
   const [sttOk, setSttOk] = useState(false)
   const [ttsOk, setTtsOk] = useState(false)
+  const [peekClosing, setPeekClosing] = useState(false)
 
   const scrollRef = useRef(null)
   const inputRef = useRef(null)
   const panelRef = useRef(null)
   const recognizerRef = useRef(null)
   const lastSpokenRef = useRef(0)
+  const peekingRef = useRef(false)
+
+  const cancelPeek = useCallback(() => {
+    peekingRef.current = false
+    setPeekClosing(false)
+  }, [])
 
   // Feature-detect voice + probe for an on-device model, all once, locally.
   useEffect(() => {
     setSttOk(sttSupported())
     setTtsOk(ttsSupported())
     probeLocalAI()
+  }, [])
+
+  // One gentle auto-peek per session, 5s after load, so visitors notice the
+  // assistant: it opens briefly, then wipes closed left-to-right. Cancelled if
+  // the visitor opens or uses it first.
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    try {
+      if (sessionStorage.getItem('resonance_peeked')) return
+    } catch {}
+    const timers = []
+    timers.push(
+      setTimeout(() => {
+        try {
+          sessionStorage.setItem('resonance_peeked', '1')
+        } catch {}
+        setOpen((cur) => {
+          if (cur) return cur
+          peekingRef.current = true
+          timers.push(
+            setTimeout(() => {
+              if (!peekingRef.current) return
+              setPeekClosing(true)
+              timers.push(
+                setTimeout(() => {
+                  peekingRef.current = false
+                  setPeekClosing(false)
+                  setOpen(false)
+                }, 650)
+              )
+            }, 3000)
+          )
+          return true
+        })
+      }, 5000)
+    )
+    return () => timers.forEach(clearTimeout)
   }, [])
 
   // Speak the newest bot message aloud when voice output is on.
@@ -128,7 +172,10 @@ export default function ChatAssistant() {
   useEffect(() => {
     if (!open) return
     const onKey = (e) => {
-      if (e.key === 'Escape') setOpen(false)
+      if (e.key === 'Escape') {
+        cancelPeek()
+        setOpen(false)
+      }
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
@@ -137,6 +184,7 @@ export default function ChatAssistant() {
   const ask = useCallback((raw) => {
     const text = raw.trim()
     if (!text) return
+    cancelPeek()
     setInput('')
     setMessages((m) => [...m, { id: nextId(), from: 'user', text }])
     setThinking(true)
@@ -236,7 +284,10 @@ export default function ChatAssistant() {
         className="chat-fab"
         aria-label={open ? 'Close the Resonance assistant' : 'Open the Resonance assistant'}
         aria-expanded={open}
-        onClick={() => setOpen((v) => !v)}
+        onClick={() => {
+          cancelPeek()
+          setOpen((v) => !v)
+        }}
         initial={{ opacity: 0, scale: 0.6, y: 20 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         transition={{ delay: 1.1, type: 'spring', stiffness: 260, damping: 20 }}
@@ -276,7 +327,7 @@ export default function ChatAssistant() {
         {open && (
           <motion.div
             ref={panelRef}
-            className="chat-panel"
+            className={`chat-panel ${peekClosing ? 'peek-wipe-out' : ''}`}
             role="dialog"
             aria-label="Resonance assistant"
             initial={{ opacity: 0, y: 24, scale: 0.96 }}
@@ -308,7 +359,10 @@ export default function ChatAssistant() {
                 type="button"
                 className="chat-head-close"
                 aria-label="Close"
-                onClick={() => setOpen(false)}
+                onClick={() => {
+                  cancelPeek()
+                  setOpen(false)
+                }}
               >
                 <Close width="18" height="18" />
               </button>

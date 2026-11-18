@@ -1,6 +1,6 @@
 import { motion, useReducedMotion } from 'framer-motion'
 
-/* Animated equalizer bars — the "resonance" motif. Static for reduced-motion. */
+/* Animated equalizer bars, the "resonance" motif. Static for reduced-motion. */
 export default function SoundWave({ bars = 9, height = 26, color = 'currentColor', play = true }) {
   const reduce = useReducedMotion()
   const animate = play && !reduce

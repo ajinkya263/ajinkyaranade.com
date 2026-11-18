@@ -1,9 +1,9 @@
 /* =============================================================================
-   ON-DEVICE AI  ·  Chrome Prompt API (Gemini Nano) — 100% local, 0 tokens
+   ON-DEVICE AI  ·  Chrome Prompt API (Gemini Nano), 100% local, 0 tokens
    -----------------------------------------------------------------------------
    Progressive enhancement for the Resonance assistant. When a visitor's browser
    ships an on-device language model, we use it to answer open-ended questions
-   the keyword engine can't — grounded in Ajinkya's details. It runs ENTIRELY on
+   the keyword engine can't, grounded in Ajinkya's details. It runs ENTIRELY on
    the visitor's machine: no network, no API key, no tokens, no cost.
 
    If the API is absent (most browsers today), everything here no-ops and the
