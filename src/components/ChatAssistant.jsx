@@ -1,7 +1,16 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 
-import { findAnswer, greeting, suggestions } from '../data/knowledge'
+import { findAnswer, greeting, suggestions, fallback } from '../data/knowledge'
+import { probeLocalAI, localAIReady, askLocalAI } from '../lib/localAI'
+import {
+  sttSupported,
+  ttsSupported,
+  createRecognizer,
+  speak,
+  cancelSpeech,
+  warmUpSpeech,
+} from '../lib/voice'
 import { ArrowUpRight } from './icons'
 
 /* A little tabla glyph for the launcher. */
@@ -27,6 +36,33 @@ const Send = (p) => (
   </svg>
 )
 
+const Mic = (p) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" {...p}>
+    <rect x="9" y="3" width="6" height="11" rx="3" />
+    <path d="M5 11a7 7 0 0 0 14 0M12 18v3" strokeLinecap="round" />
+  </svg>
+)
+
+const StopIco = (p) => (
+  <svg viewBox="0 0 24 24" fill="currentColor" {...p}>
+    <rect x="7" y="7" width="10" height="10" rx="2" />
+  </svg>
+)
+
+const SpeakerOn = (p) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" {...p}>
+    <path d="M4 9v6h4l5 4V5L8 9H4z" strokeLinejoin="round" />
+    <path d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8 8 0 0 1 0 12" strokeLinecap="round" />
+  </svg>
+)
+
+const SpeakerOff = (p) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" {...p}>
+    <path d="M4 9v6h4l5 4V5L8 9H4z" strokeLinejoin="round" />
+    <path d="M16 9l5 5M21 9l-5 5" strokeLinecap="round" />
+  </svg>
+)
+
 let idSeq = 0
 const nextId = () => ++idSeq
 
@@ -37,10 +73,42 @@ export default function ChatAssistant() {
   ])
   const [input, setInput] = useState('')
   const [thinking, setThinking] = useState(false)
+  const [listening, setListening] = useState(false)
+  const [voiceOn, setVoiceOn] = useState(false)
+  const [voiceErr, setVoiceErr] = useState('')
+  const [sttOk, setSttOk] = useState(false)
+  const [ttsOk, setTtsOk] = useState(false)
 
   const scrollRef = useRef(null)
   const inputRef = useRef(null)
   const panelRef = useRef(null)
+  const recognizerRef = useRef(null)
+  const lastSpokenRef = useRef(0)
+
+  // Feature-detect voice + probe for an on-device model, all once, locally.
+  useEffect(() => {
+    setSttOk(sttSupported())
+    setTtsOk(ttsSupported())
+    probeLocalAI()
+  }, [])
+
+  // Speak the newest bot message aloud when voice output is on.
+  useEffect(() => {
+    if (!voiceOn) return
+    const last = messages[messages.length - 1]
+    if (last && last.from === 'bot' && last.id > lastSpokenRef.current) {
+      lastSpokenRef.current = last.id
+      speak(last.text)
+    }
+  }, [messages, voiceOn])
+
+  // Stop speech / listening when the panel closes.
+  useEffect(() => {
+    if (!open) {
+      cancelSpeech()
+      recognizerRef.current?.stop()
+    }
+  }, [open])
 
   // keep the transcript pinned to the latest message
   useEffect(() => {
@@ -73,14 +141,39 @@ export default function ChatAssistant() {
     setMessages((m) => [...m, { id: nextId(), from: 'user', text }])
     setThinking(true)
 
-    // tiny, local "typing" delay so it feels considered (no network, no tokens)
-    window.setTimeout(() => {
-      const res = findAnswer(text)
-      setThinking(false)
+    const res = findAnswer(text)
+    const pushBot = (r, extra = {}) =>
       setMessages((m) => [
         ...m,
-        { id: nextId(), from: 'bot', text: res.answer, actions: res.actions },
+        { id: nextId(), from: 'bot', text: r.answer, actions: r.actions, ...extra },
       ])
+
+    // When the keyword engine has no confident answer AND an on-device model is
+    // ready, escalate to it (local, zero tokens). Otherwise the keyword answer
+    // stands after a tiny "typing" delay.
+    if (res === fallback && localAIReady()) {
+      askLocalAI(text)
+        .then((aiText) => {
+          setThinking(false)
+          if (aiText) {
+            setMessages((m) => [
+              ...m,
+              { id: nextId(), from: 'bot', text: aiText, viaAI: true },
+            ])
+          } else {
+            pushBot(res)
+          }
+        })
+        .catch(() => {
+          setThinking(false)
+          pushBot(res)
+        })
+      return
+    }
+
+    window.setTimeout(() => {
+      setThinking(false)
+      pushBot(res)
     }, 420)
   }, [])
 
@@ -88,6 +181,52 @@ export default function ChatAssistant() {
     e.preventDefault()
     ask(input)
   }
+
+  // Voice input: open the mic on an explicit click; the browser transcribes
+  // locally. Falls back to typing on any error or unsupported browser.
+  const toggleListening = useCallback(() => {
+    setVoiceErr('')
+    if (!recognizerRef.current) {
+      recognizerRef.current = createRecognizer({
+        onText: (t) => ask(t),
+        onState: (on) => setListening(on),
+        onError: (kind) => {
+          setListening(false)
+          setVoiceErr(
+            kind === 'denied'
+              ? 'Microphone blocked, you can still type.'
+              : kind === 'no-speech'
+                ? "Didn't catch that, try again."
+                : "Voice input isn't available here, type instead."
+          )
+        },
+      })
+    }
+    const rec = recognizerRef.current
+    if (!rec) {
+      setSttOk(false)
+      return
+    }
+    if (listening) rec.stop()
+    else {
+      cancelSpeech()
+      rec.start()
+    }
+  }, [listening, ask])
+
+  // Voice output: read the assistant's answers aloud.
+  const toggleVoice = useCallback(() => {
+    setVoiceOn((v) => {
+      const next = !v
+      if (next) {
+        warmUpSpeech()
+        lastSpokenRef.current = messages[messages.length - 1]?.id || 0
+      } else {
+        cancelSpeech()
+      }
+      return next
+    })
+  }, [messages])
 
   return (
     <>
@@ -153,6 +292,18 @@ export default function ChatAssistant() {
                 <strong>Resonance Assistant</strong>
                 <em>Ask about Tabla &amp; classes</em>
               </span>
+              {ttsOk && (
+                <button
+                  type="button"
+                  className="chat-head-close"
+                  aria-label={voiceOn ? 'Turn off spoken answers' : 'Read answers aloud'}
+                  title={voiceOn ? 'Voice answers: on' : 'Voice answers: off'}
+                  onClick={toggleVoice}
+                  style={voiceOn ? { color: 'var(--accent)' } : undefined}
+                >
+                  {voiceOn ? <SpeakerOn width="18" height="18" /> : <SpeakerOff width="18" height="18" />}
+                </button>
+              )}
               <button
                 type="button"
                 className="chat-head-close"
@@ -174,6 +325,11 @@ export default function ChatAssistant() {
                 >
                   <div className="chat-bubble">
                     {m.text}
+                    {m.viaAI && (
+                      <span style={{ display: 'block', marginTop: 6, fontSize: '.68rem', fontStyle: 'italic', opacity: 0.6 }}>
+                        Answered on your device
+                      </span>
+                    )}
                     {m.actions?.length > 0 && (
                       <div className="chat-actions">
                         {m.actions.map((a) => {
@@ -236,13 +392,33 @@ export default function ChatAssistant() {
                 aria-label="Type your question"
                 autoComplete="off"
               />
+              {sttOk && (
+                <button
+                  type="button"
+                  aria-label={listening ? 'Stop listening' : 'Speak your question'}
+                  onClick={toggleListening}
+                  style={{
+                    background: listening ? 'var(--accent)' : 'transparent',
+                    color: listening ? '#0a0a0a' : 'var(--accent)',
+                    border: '1px solid var(--accent)',
+                  }}
+                >
+                  {listening ? <StopIco width="16" height="16" /> : <Mic width="18" height="18" />}
+                </button>
+              )}
               <button type="submit" aria-label="Send" disabled={!input.trim()}>
                 <Send width="18" height="18" />
               </button>
             </form>
 
             <p className="chat-foot">
-              Instant answers · no account needed
+              {voiceErr
+                ? voiceErr
+                : listening
+                  ? 'Listening… speak now'
+                  : sttOk || ttsOk
+                    ? 'Voice & text · no account needed'
+                    : 'Instant answers · no account needed'}
             </p>
           </motion.div>
         )}

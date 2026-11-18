@@ -19,6 +19,7 @@
 
 import { config } from './config'
 import { resonance } from './content'
+import { EXTRA_FAQS } from './faqs'
 
 const C = config.contact
 const whatsapp = `https://wa.me/${C.phoneRaw}`
@@ -50,6 +51,19 @@ export const fallback = {
     { label: 'Email Ajinkya', href: email },
   ],
 }
+
+/* Grounding for the optional on-device AI (Chrome's Prompt API / Gemini Nano).
+   Used only when the visitor's browser already has a local model — open-ended
+   answers at zero API/token cost, since it runs entirely on their machine. */
+export const ASSISTANT_SYSTEM_PROMPT = `You are the warm, knowledgeable Resonance assistant for Ajinkya Ranade, a versatile Tabla artist and percussionist based in Santa Clara, California, and the founder of Resonance Studios.
+
+You help visitors with: the Tabla (North Indian / Hindustani classical hand drums), Ajinkya himself, joining his Tabla classes, and booking him for a concert or collaboration.
+
+About Ajinkya: he began the Tabla at age 6 under Ustad Surinder Mann and has trained under Pandit Yogesh Samsi and Shri Yashwant Vaishnav, with 13+ years in music. He teaches in person in Santa Clara and the East Bay through Resonance Studios (classes, workshops, concerts). To join classes or ask anything, the best contact is WhatsApp/call ${PHONE} or email ${MUSIC_EMAIL}; there is also a mailing list for openings and events.
+
+Reliable tabla facts: the tabla is a pair of drums — the small wooden treble dayan (right hand) and the large metal bass bayan (left hand), whose pitch bends under the heel of the palm; the black circle is the syahi. Rhythm is organised in cycles (taal) of beats (matra); the first beat is the sam. Bols are spoken syllables (Dha, Dhin, Na, Tin). The six gharanas are Delhi, Ajrada, Lucknow, Farrukhabad, Benares and Punjab. Teentaal has 16 beats.
+
+Style: reply in 2-4 warm, clear sentences. Be accurate about the tabla and music. For specifics like exact pricing or schedules, suggest contacting Ajinkya directly. Keep the focus on the tabla, learning, and Ajinkya's music. Never invent facts about real people.`
 
 export const knowledge = [
   /* ================================================================ CLASSES */
@@ -784,11 +798,33 @@ export const knowledge = [
     actions: [{ label: 'Join the mailing list', href: mailingList }],
   },
   {
+    id: 'who-are-you',
+    tags: ['who are you', 'what are you', 'your name', 'are you a bot', 'are you ai', 'are you real', 'do you have a name', 'who is this'],
+    answer:
+      "I'm Ajinkya's assistant, a friendly guide that runs right here in your browser to answer questions about Ajinkya, the Tabla, joining classes, and booking a performance. Ask me anything!",
+  },
+  {
+    id: 'what-can-you-do',
+    tags: ['what can you do', 'what do you do', 'how can you help', 'what can i ask', 'help me', 'what should i ask', 'how does this work', 'what do you know', 'what are you for'],
+    answer:
+      "I can tell you about Ajinkya, help you join Tabla classes or book a concert, and answer questions about the Tabla itself, its bols, taals, compositions, gharanas and more. Try asking, or reach Ajinkya directly anytime.",
+    actions: [{ label: 'Join the mailing list', href: mailingList }],
+  },
+  {
+    id: 'how-are-you',
+    tags: ['how are you', 'hows it going', 'how are things', 'how do you do', 'you good', 'how is it going'],
+    answer:
+      "I'm doing great, thanks for asking, always happy to talk Tabla! What would you like to know about Ajinkya, classes, or the instrument?",
+  },
+  {
     id: 'bye',
     tags: ['bye', 'goodbye', 'see you', 'later', 'thats all', 'nothing else', 'take care'],
     answer: `Take care, and thanks for stopping by! Whenever you're ready, Ajinkya is reachable at ${PHONE} or ${MUSIC_EMAIL}.`,
     actions: [{ label: 'Message on WhatsApp', href: whatsapp }],
   },
+
+  /* Bulk tabla FAQ pack (300+ Q&A), shared with the music-school assistant. */
+  ...EXTRA_FAQS.map(([t, a], i) => ({ id: `xfaq-${i}`, tags: t.split('|'), answer: a })),
 ]
 
 /* =============================================================================
@@ -826,10 +862,66 @@ const stemWord = (w) =>
 
 const stemText = (s) => normalize(s).split(' ').map(stemWord).join(' ')
 
+// Common, correctly-spelled English words that must NEVER be "corrected" into a
+// tabla term (e.g. "there"->"dhere"). The fuzzy corrector only fires on words
+// outside STOP ∪ COMMON ∪ VOCAB.
+const COMMON = new Set([
+  'forms', 'form', 'want', 'need', 'know', 'learn', 'play', 'good', 'best',
+  'time', 'long', 'hard', 'easy', 'start', 'help', 'make', 'take', 'year',
+  'show', 'cost', 'price', 'free', 'name', 'read', 'list', 'type', 'part',
+  'more', 'most', 'very', 'much', 'many', 'well', 'like', 'their', 'they',
+  'then', 'than', 'have', 'who', 'why', 'our', 'all', 'one', 'two', 'your',
+  'kind', 'thing', 'different', 'people', 'online', 'near', 'first', 'last',
+  'book', 'music', 'song', 'sound', 'class', 'lesson', 'teacher', 'student',
+])
+
+// Every meaningful single word across all tags, stemmed (for typo correction).
+const VOCAB = (() => {
+  const v = new Set()
+  for (const entry of knowledge) {
+    for (const tag of entry.tags) {
+      for (const w of stemText(tag).split(' ')) {
+        if (w.length >= 3 && !STOP.has(w)) v.add(w)
+      }
+    }
+  }
+  return v
+})()
+
+function levenshtein(a, b) {
+  const m = a.length, n = b.length
+  if (Math.abs(m - n) > 2) return 3
+  const row = Array.from({ length: n + 1 }, (_, i) => i)
+  for (let i = 1; i <= m; i++) {
+    let prev = row[0]
+    row[0] = i
+    for (let j = 1; j <= n; j++) {
+      const tmp = row[j]
+      row[j] = Math.min(row[j] + 1, row[j - 1] + 1, prev + (a[i - 1] === b[j - 1] ? 0 : 1))
+      prev = tmp
+    }
+  }
+  return row[n]
+}
+
+function fuzzyCorrect(word) {
+  if (word.length < 4 || VOCAB.has(word) || STOP.has(word) || COMMON.has(word)) return word
+  const maxDist = word.length >= 7 ? 2 : 1
+  let best = word, bestD = maxDist + 1
+  for (const v of VOCAB) {
+    if (Math.abs(v.length - word.length) > maxDist) continue
+    const d = levenshtein(word, v)
+    if (d < bestD) { bestD = d; best = v; if (d === 1) break }
+  }
+  return bestD <= maxDist ? best : word
+}
+
+const correctText = (s) => s.split(' ').map(fuzzyCorrect).join(' ')
+
 export function findAnswer(rawInput) {
   if (!normalize(rawInput)) return fallback
 
-  const stext = stemText(rawInput) // whole query, stemmed, for phrase matching
+  const stext = correctText(stemText(rawInput)) // stemmed + typo-corrected
   const words = new Set(stext.split(' ').filter((w) => w && !STOP.has(w)))
 
   let best = null
